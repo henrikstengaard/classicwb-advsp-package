@@ -2,7 +2,7 @@
 
 ## Description
 
-ClassicWB ADV Package contains ClassicWB ADVSP v28 created by Bloodwych from EAB.
+ClassicWB ADVSP Package contains ClassicWB ADVSP v28 created by Bloodwych from EAB.
 
 With permission from Bloodwych it's been converted to a package for HstWB Installer.
 
