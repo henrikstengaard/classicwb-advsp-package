@@ -6,7 +6,7 @@ ClassicWB ADVSP is a feature rich Workbench enhancement by Bloodwych targeted A1
 
 ClassicWB ADVSP Package contains ClassicWB ADVSP v28 created by Bloodwych from EAB.
 
-With permission from Bloodwych it's been converted to a package for HstWB Installer.
+With permission from Bloodwych it has been converted to a package for HstWB Installer.
 
 Original version of ClassicWB ADVSP can be downloaded from http://classicwb.abime.net/.
 
