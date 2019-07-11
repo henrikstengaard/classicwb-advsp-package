@@ -16,6 +16,8 @@
 ; - Adjusted text spacing.
 ; - Added support for Amiga OS 3.1.4:
 ;   - Reinstalled MUI to fix Scalos prefs and iGame.
+;   - Disabled newicon.library due to incompatibility with Amiga OS 3.1.4.
+;   - Replaced NewIcons with icons from ClassicWB ADV.
 ;   - Patched Scalos title to 3.1.4 for no theme, Oldicons, Retro and ReGen themes.
 ;   - Disabled PatchRAM TagLiFE BlazeWCP FBlit and IconBeFast optimizations.
 ;   - Added LoadModule ROMUPDATE to support Kickstart 3.1 being patched to 3.1.4.
