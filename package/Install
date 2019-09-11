@@ -2,7 +2,7 @@
 ; -----------------------------------------
 ;
 ; Author: Henrik Noerfjand Stengaard 
-; Date: 2019-07-24
+; Date: 2019-09-11
 ;
 ; This script extracts and installs ClassicWB ADVSP v28 created by Bloodwych from EAB.
 ; With permission from Bloodwych it's been converted to a package for HstWB Installer.
@@ -16,9 +16,12 @@
 ; - Adjusted text spacing.
 ; - Added support for Amiga OS 3.1.4:
 ;   - Reinstalled MUI to fix Scalos prefs and iGame.
-;   - Disabled newicon.library due to incompatibility with Amiga OS 3.1.4.
-;   - Replaced NewIcons with icons from ClassicWB ADV.
+;   - Disabled PatchRAM, StackAttack, FBlit and FText.
 ;   - Patched Scalos title to 3.1.4 for no theme, Oldicons, Retro and ReGen themes.
+;   - Disable Scalos option to fix NewIcons shown garbled or distorted, which will add following as a replacement for Scalos:
+;     - Full Palette for better colors in icons.
+;     - Tools Daemon for added options in Workbench top menu.
+;     - Magic Menu for right click menu in Wokrbench.
 ;   - Added LoadModule ROMUPDATE to support Kickstart 3.1 being patched to 3.1.4.
 ;   - Added version checking of DEVS:scsi.device, so it only will be loaded if scsi.device in memory/resident is less than v43.45.
 ;   - Added install patch Amiga OS 3.1.4.1, if Amiga OS 3.1.4.1 update is installed. 
@@ -74,6 +77,9 @@ ENDIF
 ; Extract classicwb advsp v28 zip to systemdir
 echo "Installing ClassicWB ADVSP..." 
 
+; copy loadwb for enabling amigaos
+Copy >NIL: "SYSTEMDIR:C/LoadWB" "SYSTEMDIR:C/LoadWB.AmigaOS"
+
 IF "$amigaosversion" EQ "3.1.4"
   ; extract classicwb advsp excluding files conflicting with amiga os 3.1.4
   unzip -qq -o -x PACKAGEDIR:classicwb_advsp_v28.zip -d SYSTEMDIR: -x *LoadModule *LoadResource *MakeLink *SetPatch *CDFileSystem *CrossDOSFileSystem *FastFileSystem *DANSK.crossdos *INTL.crossdos *MAC.crossdos *68040.library *asl.library *Icon.Library *lowlevel.library *nonvolatile.library *realtime.library
@@ -84,12 +90,6 @@ IF "$amigaosversion" EQ "3.1.4"
   Copy >NIL: "SYSTEMDIR:Temp/MUI/MUI/#?" "SYSTEMDIR:System/MUI/" CLONE ALL
   Delete >NIL: "SYSTEMDIR:Temp/MUI/" ALL
 
-  ; disable newicon.library
-  rename "SYSTEMDIR:Libs/newicon.library" "SYSTEMDIR:Libs/newicon.library_disabled"
-
-  ; extract classicwb adv icons
-  lha -m1 -q x "PACKAGEDIR:classicwb_adv_icons.lha" "SYSTEMDIR:"
-
   ; copy startup-sequence for amiga os 3.1.4
   Copy >NIL: PACKAGEDIR:Startup-Sequence.3.1.4 SYSTEMDIR:S/Startup-Sequence
 
@@ -97,6 +97,22 @@ IF "$amigaosversion" EQ "3.1.4"
   IF EXISTS "SYSTEMDIR:S/Install-Patch-Amiga-OS-3141"
     Execute "SYSTEMDIR:S/Install-Patch-Amiga-OS-3141" SYS SYSTEMDIR QUIET
   ENDIF
+
+  ; disable patchram, if it exists
+  IF EXISTS SYSTEMDIR:C/PatchRAM
+    Rename >NIL: SYSTEMDIR:C/PatchRAM SYSTEMDIR:C/PatchRAM_disabled
+  ENDIF
+
+  ; disable fblit, if it exists
+  IF EXISTS SYSTEMDIR:System/FBlit/FBlit
+    Rename SYSTEMDIR:System/FBlit/FBlit SYSTEMDIR:System/FBlit/FBlit_disabled
+    Copy SYSTEMDIR:Prefs/Env-Archive/Newicons.prefs SYSTEMDIR:Prefs/Presets/NewiconsRTG.prefs
+    Copy SYSTEMDIR:Prefs/Presets/Newicons.prefs SYSTEMDIR:Prefs/Env-Archive/Newicons.prefs
+    IF EXISTS SYSTEMDIR:Prefs/Env-Archive/FBlit.cfg
+      Copy SYSTEMDIR:Prefs/Env-Archive/FBlit.cfg SYSTEMDIR:System/FBlit/FBlit.cfg
+      Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/FBlit.cfg
+    ENDIF
+  ENDIF  
 ELSE
   ; extract classicwb advsp
   unzip -qq -o -x PACKAGEDIR:classicwb_advsp_v28.zip -d SYSTEMDIR:
@@ -104,6 +120,9 @@ ELSE
   ; copy startup-sequence for amiga os 3.1
   Copy >NIL: PACKAGEDIR:Startup-Sequence.3.1 SYSTEMDIR:S/Startup-Sequence
 ENDIF
+
+; copy scalos patches to systemdir
+Copy >NIL: PACKAGEDIR:Patches/Scalos/#? SYSTEMDIR: ALL
 
 ; Copy scsi device
 IF EXISTS DEVS:scsi.device
@@ -118,6 +137,9 @@ delete >NIL: SYSTEMDIR:T/Science
 IF EXISTS SYSTEMDIR:C/LoadWB.temp
   copy >NIL: SYSTEMDIR:C/LoadWB.temp SYSTEMDIR:C/LoadWB
   delete >NIL: SYSTEMDIR:C/LoadWB.temp
+
+  ; copy loadwb for enabling scalos
+  Copy >NIL: "SYSTEMDIR:C/LoadWB" "SYSTEMDIR:C/LoadWB.Scalos"
 ENDIF
 
 delete >NIL: SYSTEMDIR:S/Workbench3.1
@@ -139,12 +161,51 @@ ENDIF
 
 LAB OPTIONS
 
-  cd SYSTEMDIR:
-  ;C:MakeDir RAM:T RAM:Clipboards RAM:ENV RAM:ENV/Sys
-  copy >NIL: SYSTEMDIR:Prefs/Env-Archive RAM:ENV ALL NOREQ
-  Assign >NIL: ENV: RAM:ENV
-  Protect FONTS:#? +RWED ALL QUIET
-  SYSTEMDIR:System/FixFonts
+cd SYSTEMDIR:
+;C:MakeDir RAM:T RAM:Clipboards RAM:ENV RAM:ENV/Sys
+copy >NIL: SYSTEMDIR:Prefs/Env-Archive RAM:ENV ALL NOREQ
+Assign >NIL: ENV: RAM:ENV
+Protect FONTS:#? +RWED ALL QUIET
+SYSTEMDIR:System/FixFonts
+
+; skip to igame, if amiga os is not 3.1.4
+IF NOT "$amigaosversion" EQ "3.1.4"
+  SKIP IGAME
+ENDIF
+
+; disable scalos
+; --------------
+LAB disablescalos
+
+set disablescalos `RequestChoice "Scalos Disabled" "Scalos is disabled when installing ClassicWB with*NAmiga OS 3.1.4 as it displays garbled or distorted*NNewIcons.*N*NClick 'Help' for more information or click 'OK'*Nto continue installation." "Help|OK"`
+
+; help option
+IF "$disablescalos" EQ 1 VAL 
+  IF EXISTS "PACKAGEDIR:Help/Scalos-Disabled.txt"
+    Lister "PACKAGEDIR:Help/Scalos-Disabled.txt" >NIL:
+  ELSE
+    echo "*e[1mError: Help file 'PACKAGEDIR:Help/Scalos-Disabled.txt' doesn't exist!*e[0m"
+    quit 20
+  ENDIF
+  SKIP BACK disablescalos
+ENDIF
+
+; disable scalos
+Copy >NIL: "SYSTEMDIR:C/LoadWB.AmigaOS" "SYSTEMDIR:C/LoadWB"
+Echo "" NOLINE >SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos_disabled
+
+; enable magic menu
+Copy >NIL: SYSTEMDIR:Storage/Startup/MagicMenu SYSTEMDIR:WBStartup
+Copy >NIL: SYSTEMDIR:Storage/Startup/MagicMenu.info SYSTEMDIR:WBStartup
+Delete >NIL: SYSTEMDIR:Storage/Startup/MagicMenu
+Delete >NIL: SYSTEMDIR:Storage/Startup/MagicMenu.info
+
+; enable tools daemon
+Copy >NIL: SYSTEMDIR:Storage/Startup/ToolsDaemon SYSTEMDIR:WBStartup
+Copy >NIL: SYSTEMDIR:Storage/Startup/ToolsDaemon.info SYSTEMDIR:WBStartup
+Delete >NIL: SYSTEMDIR:Storage/Startup/ToolsDaemon
+Delete >NIL: SYSTEMDIR:Storage/Startup/ToolsDaemon.info
+
 
 LAB IGAME
 
@@ -328,6 +389,9 @@ LAB NONE
     Copy >NIL: "PACKAGEDIR:Scalos.prefs.none" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
   ENDIF
 
+  Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
+  Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.retro
+
   delete >NIL: SYSTEMDIR:Temp/retro.zip
   delete >NIL: SYSTEMDIR:Temp/regen.zip
   delete >NIL: SYSTEMDIR:Temp/default.zip
@@ -342,11 +406,7 @@ LAB RETRO
   echo ""
   echo "Installing..."
   echo ""
-  IF "$amigaosversion" EQ "3.1.4"
-    unzip >NIL: -o SYSTEMDIR:Temp/retro.zip -d SYSTEMDIR: -x *.info
-  ELSE
-    unzip >NIL: -o SYSTEMDIR:Temp/retro.zip -d SYSTEMDIR:
-  ENDIF
+  unzip >NIL: -o SYSTEMDIR:Temp/retro.zip -d SYSTEMDIR:
   echo ""
   echo "Retro Theme installed."
   echo ""
@@ -370,9 +430,13 @@ LAB RETRO
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
     Copy >NIL: "PACKAGEDIR:Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+
+    Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.retro SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs CLONE
+    Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
+    Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.retro
   ENDIF
 
-  copy SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs SYSTEMDIR:MyFiles/Install/Icons/Enable/Prefs/Env-Archive/Scalos/Scalos.prefs CLONE
+  Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs SYSTEMDIR:MyFiles/Install/Icons/Enable/Prefs/Env-Archive/Scalos/Scalos.prefs CLONE
 
   wait 1
   SKIP OLDICONS
@@ -383,12 +447,7 @@ LAB REGEN
   echo ""
   echo "Installing..."
   echo ""
-  IF "$amigaosversion" EQ "3.1.4"
-    unzip >NIL: -o SYSTEMDIR:Temp/regen.zip -d SYSTEMDIR: -x *.info
-  ELSE
-    unzip >NIL: -o SYSTEMDIR:Temp/regen.zip -d SYSTEMDIR:
-  ENDIF
-
+  unzip >NIL: -o SYSTEMDIR:Temp/regen.zip -d SYSTEMDIR:
   echo ""
   echo "Re-Gen Theme installed."
   echo "" 
@@ -412,9 +471,13 @@ LAB REGEN
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
     Copy >NIL: "PACKAGEDIR:Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+
+    Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs CLONE
+    Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
+    Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.retro
   ENDIF
 
-  copy SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs SYSTEMDIR:MyFiles/Install/Icons/Enable/Prefs/Env-Archive/Scalos/Scalos.prefs CLONE
+  Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs SYSTEMDIR:MyFiles/Install/Icons/Enable/Prefs/Env-Archive/Scalos/Scalos.prefs CLONE
 
   wait 1
 
@@ -586,6 +649,11 @@ LAB DISABLE
   delete >NIL: SYSTEMDIR:Temp/BorderBlank_enable
 
 LAB STACK
+
+; skip to anticlick, if amiga os version is 3.1.4 as stackattack is not needed for amiga os 3.1.4
+IF "$amigaosversion" EQ "3.1.4"
+  SKIP ANTICLICK
+ENDIF
 
 IF EXISTS SYSTEMDIR:Temp/StackAttack_enable
   cls
