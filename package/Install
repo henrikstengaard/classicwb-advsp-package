@@ -2,7 +2,7 @@
 ; -----------------------------------------
 ;
 ; Author: Henrik Noerfjand Stengaard 
-; Date: 2019-09-11
+; Date: 2019-09-12
 ;
 ; This script extracts and installs ClassicWB ADVSP v28 created by Bloodwych from EAB.
 ; With permission from Bloodwych it's been converted to a package for HstWB Installer.
@@ -49,7 +49,8 @@ IF NOT EXISTS SYSTEMDIR:Locale.info
   ELSE
     makeicon >NIL: SYSTEMDIR:Locale
   ENDIF
-ENDIF copy >NIL: PACKAGEDIR:README SYSTEMDIR:Locale/Help/ClassicWB-ADVSP
+ENDIF
+copy >NIL: PACKAGEDIR:README SYSTEMDIR:Locale/Help/ClassicWB-ADVSP
 copy >NIL: PACKAGEDIR:README.guide SYSTEMDIR:Locale/Help/ClassicWB-ADVSP
 copy >NIL: PACKAGEDIR:README.info SYSTEMDIR:Locale/Help/ClassicWB-ADVSP
 IF NOT EXISTS SYSTEMDIR:Locale/Help/ClassicWB-ADVSP/screenshots
@@ -86,12 +87,12 @@ IF "$amigaosversion" EQ "3.1.4"
 
   ; reinstall mui to fix scalos prefs and igame
   MakePath >NIL: "SYSTEMDIR:Temp/MUI"
-  lha -m1 -q x "PACKAGEDIR:mui38usr.lha" "SYSTEMDIR:Temp/MUI/"
+  lha -m1 -q x "PACKAGEDIR:Patches/mui38usr.lha" "SYSTEMDIR:Temp/MUI/"
   Copy >NIL: "SYSTEMDIR:Temp/MUI/MUI/#?" "SYSTEMDIR:System/MUI/" CLONE ALL
   Delete >NIL: "SYSTEMDIR:Temp/MUI/" ALL
 
   ; copy startup-sequence for amiga os 3.1.4
-  Copy >NIL: PACKAGEDIR:Startup-Sequence.3.1.4 SYSTEMDIR:S/Startup-Sequence
+  Copy >NIL: PACKAGEDIR:Patches/Startup-Sequence.3.1.4 SYSTEMDIR:S/Startup-Sequence
 
   ; install patch amiga os 3.1.4.1, if it exists
   IF EXISTS "SYSTEMDIR:S/Install-Patch-Amiga-OS-3141"
@@ -118,7 +119,7 @@ ELSE
   unzip -qq -o -x PACKAGEDIR:classicwb_advsp_v28.zip -d SYSTEMDIR:
 
   ; copy startup-sequence for amiga os 3.1
-  Copy >NIL: PACKAGEDIR:Startup-Sequence.3.1 SYSTEMDIR:S/Startup-Sequence
+  Copy >NIL: PACKAGEDIR:Patches/Startup-Sequence.3.1 SYSTEMDIR:S/Startup-Sequence
 ENDIF
 
 ; copy scalos patches to systemdir
@@ -386,7 +387,7 @@ LAB NONE
 
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
-    Copy >NIL: "PACKAGEDIR:Scalos.prefs.none" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+    Copy >NIL: "PACKAGEDIR:Patches/Scalos.prefs.none" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
   ENDIF
 
   Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
@@ -429,7 +430,7 @@ LAB RETRO
 
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
-    Copy >NIL: "PACKAGEDIR:Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+    Copy >NIL: "PACKAGEDIR:Patches/Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
 
     Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.retro SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs CLONE
     Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
@@ -470,7 +471,7 @@ LAB REGEN
 
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
-    Copy >NIL: "PACKAGEDIR:Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+    Copy >NIL: "PACKAGEDIR:Patches/Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
 
     Copy >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs CLONE
     Delete >NIL: SYSTEMDIR:Prefs/Env-Archive/Sys/WBPattern.prefs.regen
@@ -527,7 +528,7 @@ LAB ENABLE
 
   ; patch scalos title, if amiga os version is 3.1.4
   IF "$amigaosversion" EQ "3.1.4"
-    Copy >NIL: "PACKAGEDIR:Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
+    Copy >NIL: "PACKAGEDIR:Patches/Scalos.prefs.theme.oldicons" "SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs"
   ENDIF
 
   copy SYSTEMDIR:Prefs/Env-Archive/Scalos/Scalos.prefs SYSTEMDIR:MyFiles/Install/Icons/Enable/Prefs/Env-Archive/Scalos/Scalos.prefs CLONE
