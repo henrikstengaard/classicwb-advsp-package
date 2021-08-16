@@ -12,7 +12,7 @@ Original version of ClassicWB ADVSP can be downloaded from http://classicwb.abim
 
 ## Requirements
 
-ClassicWB ADVSP package can be installed on any Amiga with Amiga OS 3.1 or 3.1.4 and about 117MB free space on a harddrive for installation.
+ClassicWB ADVSP package can be installed on any Amiga with Amiga OS 3.2, 3.1.4 or 3.1 and about 117MB free space on a harddrive for installation.
 
 ## Installation
 
@@ -41,7 +41,7 @@ The install script for HstWB Installer is based on S/Startup-Sequence from Class
 - Removed all "press enter to continue" expect last one used after installation complete message is shown.
 - Removed and reduced waits.
 - Adjusted text spacing.
-- Added support for Amiga OS 3.1.4:
+- Added support for Amiga OS 3.2 and 3.1.4:
   - Reinstalled MUI to fix Scalos prefs and iGame.
   - Disabled PatchRAM, StackAttack, FBlit and FText.
   - Patched Scalos title to 3.1.4 for no theme, Oldicons, Retro and ReGen themes.
@@ -52,10 +52,15 @@ The install script for HstWB Installer is based on S/Startup-Sequence from Class
   - Added LoadModule ROMUPDATE to support Kickstart 3.1 being patched to 3.1.4.
   - Added version checking of DEVS:scsi.device, so it only will be loaded if scsi.device in memory/resident is less than v43.45.
   - Added install patch Amiga OS 3.1.4.1, if Amiga OS 3.1.4.1 update is installed. 
+  - Disabled Copper, BorderBlank, StackAttack.
 
 ## Screenshots
 
 Screenshots of ClassicWB ADVSP from http://classicwb.abime.net/classicweb/advsppics.htm.
+
+![ClassicWB ADVSP 3.2 1](screenshots/classicwb_advsp_3.2_1.png?raw=true)
+
+![ClassicWB ADVSP 3.2 2](screenshots/classicwb_advsp_3.2_2.png?raw=true)
 
 ![ClassicWB ADVSP 3.1.4 1](screenshots/classicwb_advsp_3.1.4_1.png?raw=true)
 
