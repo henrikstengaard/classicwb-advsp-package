@@ -8,7 +8,11 @@
 *.ps1 text eol=crlf
 
 # archives
-*.{lha,lzx,zip} binary
+*.lha binary
+*.lzx binary
+*.zip binary
 
 # images
-*.{png,jpg,jpeg,gif,iff} binary
+*.png binary
+*.jpg binary
+*.iff binary
